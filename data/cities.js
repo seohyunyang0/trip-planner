@@ -1,0 +1,125 @@
+// POI 데이터베이스
+// duration: 평균 소요시간 (분)
+// fit: 동행자 적합도 (혼자/커플/가족/친구) 0~3 (3=최적)
+// timeOfDay: morning|afternoon|evening|night|anytime
+// category: 관광|맛집|쇼핑|카페|야경|온천|체험|자연
+// area: 지역 클러스터 (같은 area끼리 묶이면 동선 효율적)
+
+window.CITIES = {
+  fukuoka: {
+    name: '후쿠오카',
+    nameEn: 'Fukuoka',
+    emoji: '🍜',
+    airport: { name: '후쿠오카공항', lat: 33.5859, lng: 130.4509, transitToCity: 15 },
+    defaultHotelArea: '하카타',
+    center: [33.5897, 130.4017],
+    zoom: 12,
+    hotelAreas: ['하카타', '텐진', '나카스'],
+    pois: [
+      { name: '하카타역', emoji: '🚉', lat: 33.5897, lng: 130.4207, category: '쇼핑', area: '하카타', duration: 60, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '하카타역·아뮤플라자·기념품 쇼핑' },
+      { name: '쿠시다 신사', emoji: '⛩️', lat: 33.5944, lng: 130.4106, category: '관광', area: '나카스', duration: 40, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 2 }, desc: '후쿠오카의 총진수, 야마카사 축제로 유명' },
+      { name: '캐널시티 하카타', emoji: '🎡', lat: 33.5896, lng: 130.4116, category: '쇼핑', area: '나카스', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '거대 쇼핑·엔터테인먼트 단지, 분수쇼' },
+      { name: '텐진 지하상가', emoji: '🛍️', lat: 33.5905, lng: 130.3994, category: '쇼핑', area: '텐진', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '텐진 지하상가·파르코·솔라리아' },
+      { name: '다이묘 거리', emoji: '☕', lat: 33.5870, lng: 130.3970, category: '카페', area: '텐진', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 1, 친구: 3 }, desc: '카페 거리·편집숍 산책, 후쿠오카 감성' },
+      { name: '나카스 야타이', emoji: '🍢', lat: 33.5928, lng: 130.4067, category: '맛집', area: '나카스', duration: 90, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 1, 친구: 3 }, desc: '강변 포장마차 거리, 라멘·꼬치' },
+      { name: '오호리 공원', emoji: '🌳', lat: 33.5867, lng: 130.3781, category: '자연', area: '오호리', duration: 90, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '도심 호수 공원, 산책·자전거' },
+      { name: '후쿠오카 타워', emoji: '🗼', lat: 33.5934, lng: 130.3514, category: '야경', area: '모모치', duration: 60, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '234m 전망대, 후쿠오카 야경' },
+      { name: '모모치 해변', emoji: '🏖️', lat: 33.5947, lng: 130.3520, category: '자연', area: '모모치', duration: 60, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '인공 해변, 일몰 명소' },
+      { name: '잇푸도 본점 (라멘)', emoji: '🍜', lat: 33.5874, lng: 130.4002, category: '맛집', area: '텐진', duration: 50, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '돈코츠 라멘 원조 명가' },
+      { name: '하카타 모츠나베 (오오야마)', emoji: '🥘', lat: 33.5898, lng: 130.4198, category: '맛집', area: '하카타', duration: 70, timeOfDay: 'evening', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '곱창전골 명물' },
+      { name: '다자이후 텐만구', emoji: '⛩️', lat: 33.5217, lng: 130.5347, category: '관광', area: '다자이후', duration: 120, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '학문의 신, 매화나무로 유명' },
+      { name: '스타벅스 다자이후점', emoji: '☕', lat: 33.5210, lng: 130.5335, category: '카페', area: '다자이후', duration: 30, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '쿠마 켄고 설계 목조 스벅' },
+      { name: '마리노아시티 (아울렛)', emoji: '🛒', lat: 33.5994, lng: 130.3163, category: '쇼핑', area: '서부', duration: 120, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '대형 아울렛 + 관람차' },
+      { name: '카와바타 상점가', emoji: '🏮', lat: 33.5928, lng: 130.4098, category: '쇼핑', area: '나카스', duration: 50, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 2, 가족: 3, 친구: 2 }, desc: '후쿠오카 최고(最古) 아케이드' },
+      { name: '이치란 본점', emoji: '🍜', lat: 33.5920, lng: 130.4067, category: '맛집', area: '나카스', duration: 50, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 3 }, desc: '1인 부스 라멘, 본점 한정 그릇' },
+      { name: '아크로스 후쿠오카 (계단정원)', emoji: '🌿', lat: 33.5901, lng: 130.4036, category: '자연', area: '텐진', duration: 40, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '계단형 옥상정원, 사진 스팟' },
+      { name: '미츠코시 텐진', emoji: '🏬', lat: 33.5891, lng: 130.4015, category: '쇼핑', area: '텐진', duration: 60, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 2, 친구: 2 }, desc: '백화점 + 디저트 명가' },
+      { name: '시사이드 모모치', emoji: '🌊', lat: 33.5944, lng: 130.3496, category: '자연', area: '모모치', duration: 60, timeOfDay: 'evening', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '바다 산책로, 후쿠오카 타워 뷰' },
+      { name: '야쿠인 카페거리', emoji: '☕', lat: 33.5778, lng: 130.4014, category: '카페', area: '야쿠인', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 1, 친구: 3 }, desc: '로컬 감성 카페 밀집' },
+      { name: '텐진 중앙공원', emoji: '🌸', lat: 33.5868, lng: 130.4001, category: '자연', area: '텐진', duration: 30, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '도심 휴식 공간' },
+      { name: '하카타 마이즈루 공원', emoji: '🏯', lat: 33.5859, lng: 130.3835, category: '관광', area: '오호리', duration: 60, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '후쿠오카성 터, 벚꽃 명소' },
+      { name: '베이사이드 플레이스 하카타', emoji: '⛴️', lat: 33.6053, lng: 130.4070, category: '쇼핑', area: '베이', duration: 60, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '항구 쇼핑·전망대' },
+      { name: '나가하마 라멘 거리', emoji: '🍜', lat: 33.6075, lng: 130.4001, category: '맛집', area: '베이', duration: 50, timeOfDay: 'night', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 3 }, desc: '돈코츠 라멘 발상지' },
+      { name: '명란 전문점 후쿠야', emoji: '🦐', lat: 33.5898, lng: 130.4185, category: '쇼핑', area: '하카타', duration: 30, timeOfDay: 'anytime', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '멘타이코 기념품의 정석' }
+    ]
+  },
+
+  osaka: {
+    name: '오사카',
+    nameEn: 'Osaka',
+    emoji: '🐙',
+    airport: { name: '간사이공항', lat: 34.4347, lng: 135.2440, transitToCity: 55 },
+    defaultHotelArea: '난바',
+    center: [34.6937, 135.5023],
+    zoom: 12,
+    hotelAreas: ['난바', '우메다', '신사이바시'],
+    pois: [
+      { name: '도톤보리', emoji: '🎭', lat: 34.6687, lng: 135.5014, category: '관광', area: '난바', duration: 90, timeOfDay: 'night', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '글리코 사인, 강변 네온, 먹거리' },
+      { name: '신사이바시 상점가', emoji: '🛍️', lat: 34.6722, lng: 135.5013, category: '쇼핑', area: '신사이바시', duration: 120, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '600m 아케이드, 패션·잡화' },
+      { name: '오사카성', emoji: '🏯', lat: 34.6873, lng: 135.5262, category: '관광', area: '오사카성', duration: 120, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '히데요시의 거성, 천수각 전망' },
+      { name: '쿠로몬 시장', emoji: '🍣', lat: 34.6660, lng: 135.5063, category: '맛집', area: '난바', duration: 90, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '오사카의 부엌, 길거리 회·꼬치' },
+      { name: '우메다 스카이빌딩', emoji: '🌃', lat: 34.7053, lng: 135.4905, category: '야경', area: '우메다', duration: 90, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 2, 친구: 2 }, desc: '공중정원 전망대, 오사카 야경' },
+      { name: 'HEP FIVE 관람차', emoji: '🎡', lat: 34.7034, lng: 135.5008, category: '체험', area: '우메다', duration: 30, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '빨간 관람차, 우메다 랜드마크' },
+      { name: '아메리카무라', emoji: '🎨', lat: 34.6736, lng: 135.4986, category: '쇼핑', area: '신사이바시', duration: 60, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 2, 가족: 1, 친구: 3 }, desc: '빈티지·스트리트 패션 거리' },
+      { name: '신세카이 + 츠텐카쿠', emoji: '🗼', lat: 34.6526, lng: 135.5063, category: '관광', area: '신세카이', duration: 90, timeOfDay: 'evening', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '레트로 오사카, 쿠시카츠' },
+      { name: '유니버설 스튜디오 재팬', emoji: '🎢', lat: 34.6655, lng: 135.4323, category: '체험', area: 'USJ', duration: 480, timeOfDay: 'anytime', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: 'USJ 종일 코스, 하루 통째로' },
+      { name: '카이유칸 (수족관)', emoji: '🐋', lat: 34.6545, lng: 135.4290, category: '체험', area: '베이', duration: 150, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '세계 최대급 수족관, 고래상어' },
+      { name: '템포잔 대관람차', emoji: '🎡', lat: 34.6552, lng: 135.4314, category: '야경', area: '베이', duration: 30, timeOfDay: 'evening', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '베이 야경 한눈에' },
+      { name: '난바 파크스', emoji: '🌿', lat: 34.6627, lng: 135.5025, category: '쇼핑', area: '난바', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '옥상정원 + 쇼핑몰 복합' },
+      { name: '오사카 스테이션 시티', emoji: '🚉', lat: 34.7025, lng: 135.4959, category: '쇼핑', area: '우메다', duration: 90, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '루쿠아·다이마루 등 쇼핑 허브' },
+      { name: '이치란 도톤보리', emoji: '🍜', lat: 34.6685, lng: 135.5024, category: '맛집', area: '난바', duration: 45, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 3 }, desc: '24시간 라멘' },
+      { name: '타코야키 쥬하치방', emoji: '🐙', lat: 34.6685, lng: 135.5009, category: '맛집', area: '난바', duration: 30, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '도톤보리 타코야키 명가' },
+      { name: '오코노미야키 미즈노', emoji: '🥞', lat: 34.6678, lng: 135.5005, category: '맛집', area: '난바', duration: 60, timeOfDay: 'evening', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '미슐랭 빕구르망 오코노미야키' },
+      { name: '나카노시마 공원', emoji: '🌹', lat: 34.6936, lng: 135.5018, category: '자연', area: '나카노시마', duration: 60, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '강 사이 공원, 장미정원' },
+      { name: '오사카 시립과학관', emoji: '🔬', lat: 34.6921, lng: 135.4906, category: '체험', area: '나카노시마', duration: 120, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 2, 가족: 3, 친구: 2 }, desc: '아이 동반 추천' },
+      { name: '센니치마에 도구야 거리', emoji: '🔪', lat: 34.6660, lng: 135.5037, category: '쇼핑', area: '난바', duration: 60, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 2 }, desc: '주방용품 천국, 일본 칼' },
+      { name: '호젠지 요코초', emoji: '🏮', lat: 34.6683, lng: 135.5023, category: '관광', area: '난바', duration: 30, timeOfDay: 'night', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '이끼낀 부동존, 골목 분위기' },
+      { name: '덴노지 동물원 + 공원', emoji: '🦒', lat: 34.6488, lng: 135.5074, category: '체험', area: '신세카이', duration: 150, timeOfDay: 'morning', fit: { 혼자: 1, 커플: 2, 가족: 3, 친구: 2 }, desc: '가족 추천 동물원' },
+      { name: '아베노 하루카스', emoji: '🌆', lat: 34.6459, lng: 135.5135, category: '야경', area: '아베노', duration: 90, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '일본 최고층 빌딩 전망대' },
+      { name: '%아라비카 교토 (오사카점 콘셉트)', emoji: '☕', lat: 34.6705, lng: 135.5010, category: '카페', area: '신사이바시', duration: 30, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '미니멀 카페' },
+      { name: '시텐노지', emoji: '⛩️', lat: 34.6541, lng: 135.5165, category: '관광', area: '아베노', duration: 60, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 2 }, desc: '일본 최고(最古) 관사 사찰' },
+      { name: '히가시노다 시장', emoji: '🍡', lat: 34.6748, lng: 135.5174, category: '맛집', area: '오사카성', duration: 60, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '로컬 시장, 길거리 음식' },
+      { name: '돈키호테 도톤보리', emoji: '🛒', lat: 34.6691, lng: 135.5014, category: '쇼핑', area: '난바', duration: 60, timeOfDay: 'night', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '24시간 잡화 천국, 관람차도 있음' }
+    ]
+  },
+
+  tokyo: {
+    name: '도쿄',
+    nameEn: 'Tokyo',
+    emoji: '🗼',
+    airport: { name: '나리타공항', lat: 35.7720, lng: 140.3929, transitToCity: 75 },
+    defaultHotelArea: '신주쿠',
+    center: [35.6762, 139.7531],
+    zoom: 11,
+    hotelAreas: ['신주쿠', '시부야', '긴자', '아사쿠사'],
+    pois: [
+      { name: '시부야 스크램블 교차로', emoji: '🚦', lat: 35.6595, lng: 139.7004, category: '관광', area: '시부야', duration: 30, timeOfDay: 'night', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '세계에서 가장 붐비는 교차로' },
+      { name: '시부야 스카이', emoji: '🌆', lat: 35.6585, lng: 139.7029, category: '야경', area: '시부야', duration: 90, timeOfDay: 'evening', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '229m 야외 전망대, 도쿄 노을' },
+      { name: '하라주쿠 다케시타도리', emoji: '🍭', lat: 35.6710, lng: 139.7040, category: '쇼핑', area: '하라주쿠', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 3 }, desc: '카와이 문화, 크레페·잡화' },
+      { name: '오모테산도', emoji: '🌳', lat: 35.6657, lng: 139.7137, category: '쇼핑', area: '오모테산도', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '명품 거리 + 카페' },
+      { name: '메이지 신궁', emoji: '⛩️', lat: 35.6764, lng: 139.6993, category: '관광', area: '하라주쿠', duration: 90, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '도심 속 숲, 메이지 천황 신사' },
+      { name: '신주쿠 가부키쵸', emoji: '🎰', lat: 35.6948, lng: 139.7028, category: '관광', area: '신주쿠', duration: 90, timeOfDay: 'night', fit: { 혼자: 3, 커플: 2, 가족: 1, 친구: 3 }, desc: '네온 거리, 고질라 헤드' },
+      { name: '신주쿠 교엔', emoji: '🌸', lat: 35.6852, lng: 139.7100, category: '자연', area: '신주쿠', duration: 120, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '도심 속 일본·서양·프랑스식 정원' },
+      { name: '도쿄 도청 전망대 (무료)', emoji: '🏙️', lat: 35.6896, lng: 139.6917, category: '야경', area: '신주쿠', duration: 60, timeOfDay: 'evening', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '무료 전망대, 후지산 뷰' },
+      { name: '아사쿠사 센소지', emoji: '🏯', lat: 35.7148, lng: 139.7967, category: '관광', area: '아사쿠사', duration: 90, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '도쿄에서 가장 오래된 사찰, 카미나리몬' },
+      { name: '도쿄 스카이트리', emoji: '🗼', lat: 35.7101, lng: 139.8107, category: '야경', area: '아사쿠사', duration: 120, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '634m, 도쿄 최고 전망' },
+      { name: '아키하바라', emoji: '🎮', lat: 35.7022, lng: 139.7741, category: '쇼핑', area: '아키하바라', duration: 120, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 3 }, desc: '오타쿠·전자제품 천국' },
+      { name: '긴자 거리', emoji: '💎', lat: 35.6717, lng: 139.7649, category: '쇼핑', area: '긴자', duration: 120, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 2, 친구: 2 }, desc: '도쿄 최고급 쇼핑 거리' },
+      { name: '츠키지 장외시장', emoji: '🍣', lat: 35.6655, lng: 139.7708, category: '맛집', area: '츠키지', duration: 90, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '신선한 해산물·계란말이·딸기' },
+      { name: '도쿄역', emoji: '🚉', lat: 35.6812, lng: 139.7671, category: '관광', area: '도쿄역', duration: 60, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '붉은 벽돌 역사 건물' },
+      { name: '도쿄 디즈니랜드', emoji: '🏰', lat: 35.6329, lng: 139.8804, category: '체험', area: '디즈니', duration: 600, timeOfDay: 'anytime', fit: { 혼자: 1, 커플: 3, 가족: 3, 친구: 3 }, desc: '디즈니랜드 통째로 하루' },
+      { name: '오다이바', emoji: '🌉', lat: 35.6266, lng: 139.7752, category: '관광', area: '오다이바', duration: 180, timeOfDay: 'afternoon', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 3 }, desc: '인공섬, 자유의 여신상·관람차·온천' },
+      { name: '롯폰기 힐스', emoji: '🌃', lat: 35.6604, lng: 139.7292, category: '야경', area: '롯폰기', duration: 120, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 2, 친구: 2 }, desc: '모리 타워 전망대, 도쿄 야경' },
+      { name: '나카메구로 가와바타', emoji: '🌸', lat: 35.6440, lng: 139.6989, category: '카페', area: '나카메구로', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 1, 친구: 3 }, desc: '강변 벚꽃·카페·편집숍' },
+      { name: '시모키타자와', emoji: '🎸', lat: 35.6614, lng: 139.6680, category: '쇼핑', area: '시모키타자와', duration: 120, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 1, 친구: 3 }, desc: '인디 + 빈티지 거리' },
+      { name: '에비스 가든 플레이스', emoji: '🍺', lat: 35.6422, lng: 139.7144, category: '관광', area: '에비스', duration: 90, timeOfDay: 'evening', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 3 }, desc: '맥주박물관, 일루미네이션' },
+      { name: '우에노 공원 + 동물원', emoji: '🐼', lat: 35.7156, lng: 139.7732, category: '자연', area: '우에노', duration: 180, timeOfDay: 'morning', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '벚꽃 명소, 판다 있음' },
+      { name: '야네센 (야나카·네즈·센다기)', emoji: '🐈', lat: 35.7261, lng: 139.7649, category: '관광', area: '야네센', duration: 150, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 2, 친구: 2 }, desc: '옛 도쿄 골목 산책, 길고양이' },
+      { name: '이치란 신주쿠 중앙동쪽점', emoji: '🍜', lat: 35.6912, lng: 139.7036, category: '맛집', area: '신주쿠', duration: 45, timeOfDay: 'anytime', fit: { 혼자: 3, 커플: 2, 가족: 2, 친구: 3 }, desc: '1인 부스 돈코츠 라멘' },
+      { name: '시부야 스트림', emoji: '🛍️', lat: 35.6571, lng: 139.7028, category: '쇼핑', area: '시부야', duration: 90, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 3 }, desc: '시부야역 직결 신복합몰' },
+      { name: '도쿄 타워', emoji: '🗼', lat: 35.6586, lng: 139.7454, category: '야경', area: '롯폰기', duration: 60, timeOfDay: 'night', fit: { 혼자: 2, 커플: 3, 가족: 3, 친구: 2 }, desc: '도쿄의 상징, 빨간 철탑' },
+      { name: '카페 키츠네', emoji: '☕', lat: 35.6691, lng: 139.7100, category: '카페', area: '오모테산도', duration: 45, timeOfDay: 'afternoon', fit: { 혼자: 3, 커플: 3, 가족: 1, 친구: 3 }, desc: '미니멀 일본식 카페' },
+      { name: '하라주쿠 오모하라의 숲', emoji: '🌳', lat: 35.6694, lng: 139.7027, category: '자연', area: '하라주쿠', duration: 30, timeOfDay: 'morning', fit: { 혼자: 3, 커플: 3, 가족: 3, 친구: 2 }, desc: '도큐 플라자 옥상 정원' }
+    ]
+  }
+};

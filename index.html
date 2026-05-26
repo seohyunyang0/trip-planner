@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+<meta name="theme-color" content="#ffd6e0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="여행 동선" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23ffd6e0'/%3E%3Ctext x='50' y='68' font-size='60' text-anchor='middle'%3E🗺️%3C/text%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E🗺️%3C/text%3E%3C/svg%3E" />
+<title>🗺️ 여행 동선 메이커 ✈️</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Single+Day&family=Gaegu:wght@400;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- LANDING / FORM -->
+<div id="form-screen" class="screen">
+  <div class="form-wrap">
+    <div class="form-card">
+      <div class="form-title">
+        <h1>🗺️ 여행 동선 메이커 ✈️</h1>
+        <p>어디로 갈지, 누구와, 며칠. <br/>나머진 우리가 짜드릴게요 💕</p>
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">🏙️ 어디로?</span>
+          <select id="cityInput" class="cute-input">
+            <option value="">도시 선택해주세요</option>
+            <option value="fukuoka">🍜 후쿠오카</option>
+            <option value="osaka">🐙 오사카</option>
+            <option value="tokyo">🗼 도쿄</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">👥 누구와?</span>
+          <div class="chip-group" id="companionInput">
+            <button type="button" class="chip" data-val="혼자">🚶 혼자</button>
+            <button type="button" class="chip" data-val="커플">💕 커플</button>
+            <button type="button" class="chip" data-val="가족">👨‍👩‍👧 가족</button>
+            <button type="button" class="chip" data-val="친구">🎉 친구</button>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="field-label">🛬 도착 (입국)</span>
+          <input type="datetime-local" id="arriveInput" class="cute-input" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">🛫 출국</span>
+          <input type="datetime-local" id="departInput" class="cute-input" />
+        </label>
+
+        <label class="field full">
+          <span class="field-label">🏨 숙소 위치</span>
+          <select id="hotelInput" class="cute-input" disabled>
+            <option value="">도시를 먼저 선택하세요</option>
+          </select>
+        </label>
+      </div>
+
+      <button id="generateBtn" class="big-cta" disabled>
+        ✨ 동선 만들어줘! ✨
+      </button>
+
+      <div class="form-hint">
+        도시 데이터 기반으로 동선을 자동 생성해요. <br/>
+        AI 없이 100% 무료 ✨
+      </div>
+    </div>
+
+    <div class="footer-credit">made with 💖 · OpenStreetMap</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-screen" class="screen" style="display:none">
+  <div id="app">
+    <aside id="sidebar">
+      <header>
+        <button class="back-btn" id="backBtn">← 새로 만들기</button>
+        <h1 id="resultTitle">🗺️ 여행 동선</h1>
+        <div class="sub" id="resultSub"></div>
+      </header>
+      <div class="day-tabs" id="dayTabs"></div>
+      <div class="legend">마커 콕! 누르면 <strong>구글맵으로 슝~</strong> 갈 수 있어요 🎀</div>
+      <div class="schedule" id="schedule"></div>
+    </aside>
+    <div id="map"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="data/cities.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
