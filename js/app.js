@@ -55,11 +55,31 @@ function checkValid() {
   generateBtn.disabled = !valid;
 }
 
-generateBtn.addEventListener('click', () => {
+generateBtn.addEventListener('click', async () => {
   const arriveAt = new Date(arriveInput.value);
   const departAt = new Date(departInput.value);
   const msDay = 24 * 60 * 60 * 1000;
   const days = Math.ceil((new Date(departAt.toDateString()) - new Date(arriveAt.toDateString())) / msDay) + 1;
+
+  const city = window.CITIES[cityInput.value];
+  const dates = window.Weather.getTravelDates(arriveAt, departAt);
+  const startDate = dates[0];
+  const endDate = dates[dates.length - 1];
+
+  const originalText = generateBtn.innerHTML;
+  generateBtn.innerHTML = '☁️ 날씨 확인 중... ☁️';
+  generateBtn.disabled = true;
+
+  let weatherByDay = null;
+  try {
+    const wx = await window.Weather.fetchWeather(city.center[0], city.center[1], startDate, endDate);
+    if (wx && wx.days) {
+      weatherByDay = {};
+      wx.days.forEach((w, i) => { weatherByDay[i] = w; });
+    }
+  } catch (e) {
+    console.warn('Weather fetch error', e);
+  }
 
   const itinerary = window.TripEngine.generateItinerary({
     cityKey: cityInput.value,
@@ -67,9 +87,12 @@ generateBtn.addEventListener('click', () => {
     companion: selectedCompanion,
     arriveAt,
     departAt,
-    hotelArea: hotelInput.value
+    hotelArea: hotelInput.value,
+    weatherByDay
   });
 
+  generateBtn.innerHTML = originalText;
+  generateBtn.disabled = false;
   renderResult(itinerary, { arriveAt, departAt });
 });
 
@@ -192,12 +215,20 @@ function renderSchedule(it) {
     section.style.display = dIdx === 0 ? '' : 'none';
 
     const dirUrl = gmapsDirLink(day.stops);
+    const wx = day.weather;
+    const wxChip = wx ? `<div class="weather-chip" title="${wx.label}${wx.hint ? ' · ' + wx.hint : ''}">
+        <span class="wx-emoji">${wx.emoji}</span>
+        <span class="wx-temp">${wx.tempMin}°~${wx.tempMax}°</span>
+        ${wx.precip > 1 ? `<span class="wx-precip">💧${wx.precip.toFixed(1)}mm</span>` : ''}
+      </div>` : '';
     section.innerHTML = `
       <div class="day-header">
         <span class="day-badge" style="background:${color}">${day.day}</span>
         <span class="day-theme">${day.emoji} ${day.theme}</span>
         ${dirUrl ? `<a class="day-dir-link" href="${dirUrl}" target="_blank">🗺️ 전체경로</a>` : ''}
       </div>
+      ${wxChip}
+      ${wx && wx.hint ? `<div class="weather-hint">💡 ${wx.hint}</div>` : ''}
     `;
 
     day.stops.forEach((stop, i) => {

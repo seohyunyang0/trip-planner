@@ -32,6 +32,16 @@
     return poi.timeOfDay === hourBlock ? 2 : 0.3;
   }
 
+  // 날씨 가중치 (카테고리 기반 indoor/outdoor 분류)
+  const INDOOR_CATS = new Set(['쇼핑', '맛집', '카페']);
+  const OUTDOOR_CATS = new Set(['관광', '자연', '야경']);
+  function weatherBonus(poi, weather) {
+    if (!weather) return 1;
+    if (INDOOR_CATS.has(poi.category)) return weather.indoorBonus || 1;
+    if (OUTDOOR_CATS.has(poi.category)) return weather.outdoorBonus || 1;
+    return 1; // 체험/온천/이동/숙소는 중립
+  }
+
   function pickHourBlock(mins) {
     const h = Math.floor(mins / 60) % 24;
     if (h < 11) return 'morning';
@@ -109,7 +119,7 @@
 
   // 한 일자의 POI 후보 중에서 시간 슬롯에 맞춰 일정 짜기
   function buildDaySchedule(dayBucket, opts) {
-    const { dayIndex, totalDays, companion, dayStart, dayEnd, hotelLatLng, isArrival, isDeparture, arriveAt, departAt, airport, hotelArea, hotelPois } = opts;
+    const { dayIndex, totalDays, companion, dayStart, dayEnd, hotelLatLng, isArrival, isDeparture, arriveAt, departAt, airport, hotelArea, hotelPois, weather } = opts;
 
     let cursor = dayStart;
     const scheduled = [];
@@ -177,7 +187,8 @@
         .filter(p => !used.has(p.name))
         .map(p => {
           const distPenalty = 1 / (1 + distance({ lat: refLat, lng: refLng }, p) * 20);
-          const score = p._fit * timeOfDayScore(p, hourBlock) * distPenalty;
+          const wBonus = weatherBonus(p, weather);
+          const score = p._fit * timeOfDayScore(p, hourBlock) * distPenalty * wBonus;
           return { ...p, _score: score };
         })
         .sort((a, b) => b._score - a._score);
@@ -301,7 +312,7 @@
   }
 
   function generateItinerary(input) {
-    const { cityKey, days, companion, arriveAt, departAt, hotelArea } = input;
+    const { cityKey, days, companion, arriveAt, departAt, hotelArea, weatherByDay } = input;
     const city = window.CITIES[cityKey];
     if (!city) throw new Error(`Unknown city: ${cityKey}`);
 
@@ -342,6 +353,7 @@
         dayEnd = 21 * 60;
       }
 
+      const weather = weatherByDay && weatherByDay[d];
       const stops = buildDaySchedule(dayBucket, {
         dayIndex: d,
         totalDays: days,
@@ -355,7 +367,8 @@
         departAt,
         airport: city.airport,
         hotelArea,
-        hotelPois: city.pois.filter(p => p.area === hotelArea)
+        hotelPois: city.pois.filter(p => p.area === hotelArea),
+        weather
       });
 
       const theme = themeForDay(dayBucket, d, days, isArrival, isDeparture);
@@ -363,6 +376,7 @@
         day: d + 1,
         emoji: theme.emoji,
         theme: theme.label,
+        weather: weather || null,
         stops
       });
     }
