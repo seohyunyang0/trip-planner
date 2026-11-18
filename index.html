@@ -31,9 +31,20 @@
           <span class="field-label">🏙️ 어디로?</span>
           <select id="cityInput" class="cute-input">
             <option value="">도시 선택해주세요</option>
-            <option value="fukuoka">🍜 후쿠오카</option>
-            <option value="osaka">🐙 오사카</option>
-            <option value="tokyo">🗼 도쿄</option>
+            <optgroup label="🇯🇵 일본">
+              <option value="fukuoka">🍜 후쿠오카</option>
+              <option value="osaka">🐙 오사카</option>
+              <option value="tokyo">🗼 도쿄</option>
+            </optgroup>
+            <optgroup label="🇺🇸 미국">
+              <option value="newyork">🗽 뉴욕</option>
+              <option value="boston">🦞 보스턴</option>
+            </optgroup>
+            <optgroup label="🇪🇺 유럽">
+              <option value="porto">🍷 포르투</option>
+              <option value="barcelona">🏛️ 바르셀로나</option>
+              <option value="madrid">🐻 마드리드</option>
+            </optgroup>
           </select>
         </label>
 
@@ -49,12 +60,24 @@
 
         <label class="field">
           <span class="field-label">🛬 도착 (입국)</span>
-          <input type="datetime-local" id="arriveInput" class="cute-input" />
+          <div class="datepicker" data-picker="arrive">
+            <input type="hidden" id="arriveInput" />
+            <button type="button" class="dp-trigger">
+              <span class="dp-display">날짜를 골라주세요</span>
+              <span class="dp-icon">📅</span>
+            </button>
+          </div>
         </label>
 
         <label class="field">
           <span class="field-label">🛫 출국</span>
-          <input type="datetime-local" id="departInput" class="cute-input" />
+          <div class="datepicker" data-picker="depart">
+            <input type="hidden" id="departInput" />
+            <button type="button" class="dp-trigger">
+              <span class="dp-display">날짜를 골라주세요</span>
+              <span class="dp-icon">📅</span>
+            </button>
+          </div>
         </label>
 
         <label class="field full">
@@ -67,6 +90,15 @@
 
       <button id="generateBtn" class="big-cta" disabled>
         ✨ 동선 만들어줘! ✨
+      </button>
+
+      <button type="button" class="trip-card" data-trip="italy">
+        <span class="trip-card-flag">🇮🇹</span>
+        <span class="trip-card-body">
+          <strong>이탈리아 11일 여행</strong>
+          <small>로마 · 피렌체 · 밀라노 | 11/18 – 11/28</small>
+        </span>
+        <span class="trip-card-go">보기 →</span>
       </button>
 
       <div class="form-hint">
@@ -98,8 +130,10 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="data/cities.js"></script>
+<script src="data/trips.js"></script>
 <script src="js/weather.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/app.js"></script>
+<script src="js/datepicker.js"></script>
 </body>
 </html>

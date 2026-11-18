@@ -106,20 +106,24 @@ function renderResult(it, { arriveAt, departAt }) {
   document.getElementById('form-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = '';
 
-  document.getElementById('resultTitle').innerHTML = `${it.city.emoji} ${it.city.name} ${it.days.length}일 여행 ✈️`;
+  document.getElementById('resultTitle').innerHTML = it.title || `${it.city.emoji} ${it.city.name} ${it.days.length}일 여행 ✈️`;
+  if (it.subtitle) {
+    document.getElementById('resultSub').textContent = it.subtitle;
+  } else {
   const arriveStr = `${arriveAt.getMonth()+1}/${arriveAt.getDate()} ${String(arriveAt.getHours()).padStart(2,'0')}:${String(arriveAt.getMinutes()).padStart(2,'0')}`;
   const departStr = `${departAt.getMonth()+1}/${departAt.getDate()} ${String(departAt.getHours()).padStart(2,'0')}:${String(departAt.getMinutes()).padStart(2,'0')}`;
   document.getElementById('resultSub').textContent = `${it.companion} · ${it.hotel.area} 숙소 · ${arriveStr} → ${departStr}`;
+  }
 
   if (map) { map.remove(); }
-  map = L.map('map', { zoomControl: true }).setView(it.city.center, it.city.zoom);
+  map = L.map('map', { zoomControl: true }).setView(it.center || it.city.center, it.zoom || it.city.zoom);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap 💕'
   }).addTo(map);
 
-  // 호텔 마커 (별표)
-  L.marker([it.hotel.lat, it.hotel.lng], {
+  // 호텔 마커 (별표) — 확정 일정은 숙소가 stop으로 들어가 있음
+  if (it.hotel) L.marker([it.hotel.lat, it.hotel.lng], {
     icon: L.divIcon({
       className: 'custom-marker',
       html: `<div class="marker-pin" style="--c:#ffd97d"><span class="emoji">🏨</span></div>`,
@@ -137,6 +141,7 @@ function renderResult(it, { arriveAt, departAt }) {
     const path = [];
 
     day.stops.forEach((stop, i) => {
+      if (stop.lat == null) return;
       const marker = L.marker([stop.lat, stop.lng], {
         icon: L.divIcon({
           className: 'custom-marker',
@@ -182,7 +187,7 @@ function renderDayTabs(it) {
     const btn = document.createElement('button');
     btn.className = 'day-tab' + (i === 0 ? ' active' : '');
     btn.dataset.day = day.day;
-    btn.innerHTML = `${day.emoji} ${day.day}일차`;
+    btn.innerHTML = `${day.emoji} ${day.label || day.day + '일차'}`;
     btn.onclick = () => showDay(day.day, it);
     tabs.appendChild(btn);
   });
@@ -195,6 +200,7 @@ function renderDayTabs(it) {
 }
 
 function gmapsDirLink(stops) {
+  stops = stops.filter(s => s.lat != null);
   if (stops.length < 2) return null;
   const origin = `${stops[0].lat},${stops[0].lng}`;
   const dest = `${stops[stops.length-1].lat},${stops[stops.length-1].lng}`;
@@ -224,23 +230,24 @@ function renderSchedule(it) {
     section.innerHTML = `
       <div class="day-header">
         <span class="day-badge" style="background:${color}">${day.day}</span>
-        <span class="day-theme">${day.emoji} ${day.theme}</span>
+        <span class="day-theme">${day.emoji} ${day.label ? `<small>${day.label}</small> ` : ''}${day.theme}</span>
         ${dirUrl ? `<a class="day-dir-link" href="${dirUrl}" target="_blank">🗺️ 전체경로</a>` : ''}
       </div>
       ${wxChip}
+      ${day.hotel ? `<div class="day-hotel">🏨 ${day.hotel.name}${day.hotel.note ? ` <small>· ${day.hotel.note}</small>` : ''}</div>` : ''}
       ${wx && wx.hint ? `<div class="weather-hint">💡 ${wx.hint}</div>` : ''}
     `;
 
     day.stops.forEach((stop, i) => {
       const item = document.createElement('div');
-      item.className = 'stop';
+      item.className = 'stop' + (stop.lat == null ? ' no-map' : '');
       const memo = stop.memo ? `<br/><span class="memo">💭 ${stop.memo}</span>` : '';
       item.innerHTML = `
         <span class="stop-num" style="background:${color}">${i+1}</span>
         <div class="stop-body">
           <span class="stop-time">⏰ ${stop.time}</span>
-          <div class="stop-title"><span class="stop-emoji">${stop.emoji}</span>${stop.name}<span class="stop-priority priority-${stop.priority}">${stop.priority}</span></div>
-          <div class="stop-meta">${stop.desc}${memo}</div>
+          <div class="stop-title"><span class="stop-emoji">${stop.emoji}</span>${stop.name}${stop.priority ? `<span class="stop-priority priority-${stop.priority}">${stop.priority}</span>` : ''}</div>
+          <div class="stop-meta">${stop.desc || ''}${memo}</div>
         </div>
       `;
       item.onclick = () => {
@@ -273,12 +280,46 @@ function showDay(dayNum, it) {
   const targets = dayNum === 'all' ? Object.keys(layers) : [dayNum];
   targets.forEach(d => {
     layers[d].group.addTo(map);
-    it.days.find(x => String(x.day) === String(d))?.stops.forEach(s => bounds.push([s.lat, s.lng]));
+    it.days.find(x => String(x.day) === String(d))?.stops.forEach(s => { if (s.lat != null) bounds.push([s.lat, s.lng]); });
   });
   if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] });
 }
 
 document.getElementById('backBtn').addEventListener('click', () => {
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   document.getElementById('result-screen').style.display = 'none';
   document.getElementById('form-screen').style.display = '';
 });
+
+// ─────────── 확정 일정 (data/trips.js) ───────────
+async function openTrip(key) {
+  const trip = window.TRIPS && window.TRIPS[key];
+  if (!trip) return;
+  if (location.hash !== '#' + key) history.replaceState(null, '', '#' + key);
+
+  // 도시별 날씨를 한 번씩만 받아서 날짜로 매칭 (예보 범위 밖이면 생략)
+  const dates = trip.days.map(d => d.date);
+  const start = dates[0], end = dates[dates.length - 1];
+  const wxByCity = {};
+  await Promise.all(Object.entries(trip.weatherCities || {}).map(async ([city, [lat, lng]]) => {
+    try {
+      // 날씨가 늦으면 기다리지 않고 일정부터 보여줌
+      const timeout = new Promise(res => setTimeout(() => res(null), 3000));
+      const wx = await Promise.race([window.Weather.fetchWeather(lat, lng, start, end, 'Europe/Rome'), timeout]);
+      if (wx && wx.days) wxByCity[city] = Object.fromEntries(wx.days.map(w => [w.date, w]));
+    } catch (e) { console.warn('Weather fetch error', e); }
+  }));
+
+  const it = {
+    ...trip,
+    days: trip.days.map(d => ({ ...d, weather: wxByCity[d.city]?.[d.date] || null }))
+  };
+  renderResult(it, {});
+}
+
+document.querySelectorAll('[data-trip]').forEach(btn =>
+  btn.addEventListener('click', () => openTrip(btn.dataset.trip))
+);
+if (location.hash.length > 1 && window.TRIPS && window.TRIPS[location.hash.slice(1)]) {
+  openTrip(location.hash.slice(1));
+}

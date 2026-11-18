@@ -120,6 +120,184 @@ html, body {
 .cute-input:focus { background: white; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
 .cute-input:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ───────── 커스텀 날짜 피커 ───────── */
+.datepicker { position: relative; }
+.dp-trigger {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-family: 'Fredoka', 'Gaegu', sans-serif;
+  font-size: 14px; font-weight: 600;
+  color: var(--ink);
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--cream);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.dp-trigger:hover { background: white; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.dp-trigger.open { background: white; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.dp-display { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dp-icon { font-size: 16px; flex-shrink: 0; }
+
+.dp-pop {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 10px);
+  left: 0;
+  width: min(340px, calc(100vw - 32px));
+  background: var(--milk);
+  border: 3px solid var(--ink);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--ink);
+  padding: 16px;
+  animation: dp-pop-in 0.18s cubic-bezier(.34, 1.56, .64, 1);
+}
+@keyframes dp-pop-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dp-pop.up { top: auto; bottom: calc(100% + 10px); }
+.dp-pop.up::before { top: auto; bottom: -14px; transform: rotate(12deg); }
+.datepicker[data-picker="depart"] .dp-pop { left: auto; right: 0; }
+.datepicker[data-picker="depart"] .dp-pop::before { left: auto; right: 20px; transform: rotate(12deg); }
+.dp-pop::before {
+  content: "✿";
+  position: absolute;
+  top: -14px; left: 20px;
+  background: var(--hotpink); color: white;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; border: 2.5px solid var(--ink);
+  transform: rotate(-12deg);
+}
+
+.dp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dp-title {
+  font-family: 'Bagel Fat One', 'Single Day', cursive;
+  font-size: 17px; color: var(--ink);
+  text-shadow: 2px 2px 0 var(--pink);
+  letter-spacing: -0.3px;
+}
+.dp-nav {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; line-height: 1; font-weight: 700;
+  color: var(--ink);
+  background: white;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dp-nav:hover { background: var(--butter); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.dp-nav:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+
+.dp-weekdays {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.dp-wd {
+  text-align: center;
+  font-family: 'Gaegu', sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: var(--ink-soft);
+  padding: 4px 0;
+}
+.dp-wd.sun { color: var(--hotpink); }
+.dp-wd.sat { color: #5b9bd5; }
+
+.dp-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.dp-day {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 15px; font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.dp-day:hover { background: var(--pink); border-color: var(--ink); transform: scale(1.05); }
+.dp-day.sun { color: var(--hotpink); }
+.dp-day.sat { color: #5b9bd5; }
+.dp-day.muted { color: #ccbdb2; opacity: 0.6; }
+.dp-day.today { box-shadow: inset 0 0 0 2px var(--butter); }
+.dp-day.selected {
+  background: var(--hotpink);
+  color: white;
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: rotate(-3deg) scale(1.05);
+}
+.dp-day.selected.sun, .dp-day.selected.sat { color: white; }
+
+.dp-time {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 2px dotted var(--line);
+  flex-wrap: wrap;
+}
+.dp-ampm { display: flex; gap: 4px; }
+.dp-ampm button {
+  font-family: 'Gaegu', sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: var(--ink);
+  padding: 7px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: white;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dp-ampm button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.dp-ampm button.active { background: var(--lavender); color: white; }
+.dp-time-sel { display: flex; align-items: center; gap: 4px; }
+.dp-time-sel select {
+  font-family: 'Fredoka', monospace;
+  font-size: 16px; font-weight: 600;
+  color: var(--ink);
+  padding: 6px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--cream);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  outline: none;
+}
+.dp-colon { font-family: 'Bagel Fat One', cursive; font-size: 16px; color: var(--ink); }
+
+.dp-foot {
+  display: flex; gap: 8px; margin-top: 14px;
+}
+.dp-foot button {
+  flex: 1;
+  font-family: 'Gaegu', sans-serif;
+  font-size: 14px; font-weight: 700;
+  padding: 9px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: all 0.15s;
+}
+.dp-foot button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.dp-today { background: white; color: var(--ink); }
+.dp-done { background: linear-gradient(135deg, var(--mint), var(--butter)); color: var(--ink); }
+
 .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   font-family: 'Fredoka', 'Gaegu', sans-serif;
@@ -485,3 +663,46 @@ header .sub::after { content: " ✿"; color: var(--hotpink); }
   .day-tabs { top: 0; position: sticky; padding: 10px 12px; gap: 5px; }
   .day-tab { padding: 7px 11px; font-size: 12px; }
 }
+
+/* ─────────── 확정 일정 ─────────── */
+.trip-card {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  font-family: 'Gaegu', sans-serif;
+  color: var(--ink);
+  background: linear-gradient(135deg, #e3f7ec, var(--milk) 50%, #ffe3e3);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(.34, 1.56, .64, 1);
+}
+.trip-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.trip-card-flag { font-size: 32px; }
+.trip-card-body { flex: 1; display: flex; flex-direction: column; }
+.trip-card-body strong { font-family: 'Fredoka', 'Gaegu', sans-serif; font-size: 17px; }
+.trip-card-body small { font-size: 14px; color: var(--ink-soft); font-weight: 700; }
+.trip-card-go { font-weight: 700; color: var(--hotpink); white-space: nowrap; }
+
+.day-theme small { color: var(--hotpink); font-size: 12px; }
+.day-hotel {
+  font-family: 'Gaegu', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  background: #fff3c4;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 5px 10px;
+  margin: 6px 0 4px;
+}
+.day-hotel small { color: var(--ink-soft); }
+.stop.no-map { opacity: 0.8; cursor: default; }
+.stop.no-map .stop-num { filter: grayscale(0.6); }
+.priority-예약완료 { background: #dff5e6; color: #1f8a4c; }
+.priority-확인필요 { background: #ffe0e0; color: #c33; }
