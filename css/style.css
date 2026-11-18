@@ -662,7 +662,8 @@ header .sub::after { content: " ✿"; color: var(--hotpink); }
   #map { display: none; }
   .map-sheet-open #map {
     display: block;
-    position: fixed; left: 0; right: 0; bottom: 0;
+    /* Leaflet이 지도 생성 시 inline으로 position: relative를 넣어서 !important 필요 */
+    position: fixed !important; left: 0; right: 0; bottom: 0;
     height: 45vh; height: 45dvh;
     z-index: 50;
     border-top: 3px solid var(--ink);

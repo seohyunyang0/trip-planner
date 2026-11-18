@@ -332,23 +332,8 @@ async function openTrip(key) {
   if (!trip) return;
   if (location.hash !== '#' + key) history.replaceState(null, '', '#' + key);
 
-  // 도시별 날씨를 한 번씩만 받아서 날짜로 매칭 (예보 범위 밖이면 생략)
-  const dates = trip.days.map(d => d.date);
-  const start = dates[0], end = dates[dates.length - 1];
-  const wxByCity = {};
-  await Promise.all(Object.entries(trip.weatherCities || {}).map(async ([city, [lat, lng]]) => {
-    try {
-      // 날씨가 늦으면 기다리지 않고 일정부터 보여줌
-      const timeout = new Promise(res => setTimeout(() => res(null), 3000));
-      const wx = await Promise.race([window.Weather.fetchWeather(lat, lng, start, end, 'Europe/Rome'), timeout]);
-      if (wx && wx.days) wxByCity[city] = Object.fromEntries(wx.days.map(w => [w.date, w]));
-    } catch (e) { console.warn('Weather fetch error', e); }
-  }));
-
-  const it = {
-    ...trip,
-    days: trip.days.map(d => ({ ...d, weather: wxByCity[d.city]?.[d.date] || null }))
-  };
+  document.title = trip.title;
+  const it = { ...trip, days: trip.days.map(d => ({ ...d, weather: null })) };
   renderResult(it, {});
 
   // 여행 중이면 오늘 날짜 탭으로 바로 이동
@@ -356,11 +341,29 @@ async function openTrip(key) {
   const today = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   const todayDay = it.days.find(d => d.date === today);
   if (todayDay) showDay(todayDay.day, it);
+
+  // 날씨는 일정부터 보여준 뒤에 채움 — 도시별로 한 번씩 받아서 날짜로 매칭 (예보 범위 밖이면 생략)
+  const dates = trip.days.map(d => d.date);
+  const start = dates[0], end = dates[dates.length - 1];
+  const wxByCity = {};
+  await Promise.all(Object.entries(trip.weatherCities || {}).map(async ([city, [lat, lng]]) => {
+    try {
+      const wx = await window.Weather.fetchWeather(lat, lng, start, end, 'Europe/Rome');
+      if (wx && wx.days) wxByCity[city] = Object.fromEntries(wx.days.map(w => [w.date, w]));
+    } catch (e) { console.warn('Weather fetch error', e); }
+  }));
+
+  if (!Object.keys(wxByCity).length) return;
+  it.days.forEach(d => { d.weather = wxByCity[d.city]?.[d.date] || null; });
+  const current = document.querySelector('.day-tab.active')?.dataset.day;
+  renderSchedule(it);
+  if (current) showDay(current, it);
 }
 
 document.querySelectorAll('[data-trip]').forEach(btn =>
   btn.addEventListener('click', () => openTrip(btn.dataset.trip))
 );
-if (location.hash.length > 1 && window.TRIPS && window.TRIPS[location.hash.slice(1)]) {
-  openTrip(location.hash.slice(1));
-}
+// 첫 화면은 이번 이탈리아 여행 (#italy 등 해시가 있으면 그 일정)
+const DEFAULT_TRIP = 'italy';
+const hashTrip = location.hash.slice(1);
+openTrip(window.TRIPS && window.TRIPS[hashTrip] ? hashTrip : DEFAULT_TRIP);
