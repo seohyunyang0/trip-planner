@@ -660,15 +660,25 @@ header .sub::after { content: " ✿"; color: var(--hotpink); }
   #sidebar { width: 100%; height: auto; overflow: visible; border-right: none; }
   header { position: static; }
   #map { display: none; }
-  #map.inline-open {
+  .map-sheet-open #map {
     display: block;
-    height: 300px;
-    margin: -4px 0 14px;
-    border: 3px solid var(--ink);
-    border-radius: 16px;
-    box-shadow: 4px 4px 0 var(--ink);
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 45vh; height: 45dvh;
+    z-index: 50;
+    border-top: 3px solid var(--ink);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 0 var(--ink);
     overflow: hidden;
+    animation: sheet-up 0.25s ease-out;
   }
+  .map-sheet-open #mapClose {
+    display: block;
+    position: fixed; right: 12px;
+    bottom: calc(45vh - 18px); bottom: calc(45dvh - 18px);
+    z-index: 60;
+  }
+  .map-sheet-open #sidebar { padding-bottom: 45vh; padding-bottom: 45dvh; }
+  .stop { scroll-margin-top: 64px; }
   header h1 { font-size: 17px; }
   .day-tabs { top: 0; position: sticky; padding: 10px 12px; gap: 5px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .day-tab { flex-shrink: 0; }
@@ -717,3 +727,18 @@ header .sub::after { content: " ✿"; color: var(--hotpink); }
 .stop.no-map .stop-num { filter: grayscale(0.6); }
 .priority-예약완료 { background: #dff5e6; color: #1f8a4c; }
 .priority-확인필요 { background: #ffe0e0; color: #c33; }
+
+#mapClose {
+  display: none;
+  font-family: 'Gaegu', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--butter);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }

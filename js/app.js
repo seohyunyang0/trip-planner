@@ -102,18 +102,20 @@ let map = null;
 const layers = {};
 const markersByStop = new Map();
 
-// 모바일: 지도는 숨겨두고, 일정을 누르면 그 일정 바로 아래에 펼침
+// 모바일: 지도는 숨겨두고, 일정을 누르면 화면 맨 아래에 시트로 올라옴
 const mobileMQ = window.matchMedia('(max-width: 800px)');
-function closeInlineMap() {
-  const mapEl = document.getElementById('map');
-  mapEl.classList.remove('inline-open');
-  document.getElementById('app').appendChild(mapEl);
+let sheetStop = null;
+function closeMapSheet() {
+  document.body.classList.remove('map-sheet-open');
+  document.querySelectorAll('.stop.active').forEach(s => s.classList.remove('active'));
+  sheetStop = null;
   if (map) map.invalidateSize();
 }
-mobileMQ.addEventListener('change', closeInlineMap);
+mobileMQ.addEventListener('change', closeMapSheet);
+document.getElementById('mapClose').addEventListener('click', closeMapSheet);
 
 function renderResult(it, { arriveAt, departAt }) {
-  closeInlineMap();
+  closeMapSheet();
   document.getElementById('form-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = '';
 
@@ -279,23 +281,18 @@ function renderSchedule(it) {
         const marker = markersByStop.get(`${day.day}-${i}`);
         if (!marker) return;
         if (!map.hasLayer(layers[day.day].group)) showDay(day.day, it);
-        const mapEl = document.getElementById('map');
         if (mobileMQ.matches) {
-          // 같은 일정을 다시 누르면 지도 접기
-          if (mapEl.classList.contains('inline-open') && mapEl.previousElementSibling === item) {
-            closeInlineMap();
-            item.classList.remove('active');
-            return;
-          }
-          item.after(mapEl);
-          mapEl.classList.add('inline-open');
+          // 같은 일정을 다시 누르면 지도 닫기
+          if (sheetStop === item) { closeMapSheet(); return; }
+          sheetStop = item;
+          document.body.classList.add('map-sheet-open');
           map.invalidateSize();
         }
         map.setView(marker.getLatLng(), 15, { animate: !mobileMQ.matches });
         marker.openPopup();
         document.querySelectorAll('.stop').forEach(s => s.classList.remove('active'));
         item.classList.add('active');
-        if (mobileMQ.matches) mapEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (mobileMQ.matches) item.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
       section.appendChild(item);
     });
@@ -304,10 +301,7 @@ function renderSchedule(it) {
 }
 
 function showDay(dayNum, it) {
-  if (mobileMQ.matches) {
-    closeInlineMap();
-    document.querySelectorAll('.stop').forEach(s => s.classList.remove('active'));
-  }
+  if (mobileMQ.matches) closeMapSheet();
   Object.values(layers).forEach(l => map.removeLayer(l.group));
   document.querySelectorAll('.day-tab').forEach(b => b.classList.toggle('active', String(b.dataset.day) === String(dayNum)));
   document.querySelectorAll('.day-section').forEach(s => {
