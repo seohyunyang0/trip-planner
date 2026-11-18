@@ -2,6 +2,7 @@
 // stop에 lat/lng가 없으면 지도 마커 없이 일정표에만 표시 (이동·체크인 등)
 // priority: 예약완료 | 확인필요 | 선택
 
+const ROME_HOTEL = { name: 'The Liberty Boutique Hotel', note: 'Via Palestro 64 · 테르미니역 도보 7분', lat: 41.9045, lng: 12.5050 };
 const FLORENCE_HOTEL = { name: 'Solo Experience Hotel', note: 'SMN역 도보 5분' };
 const MILAN_HOTEL = { name: 'NYX Hotel Milan', note: '중앙역 앞', lat: 45.4853, lng: 9.2024 };
 
@@ -18,7 +19,7 @@ window.TRIPS = {
     },
     days: [
       {
-        day: 1, date: '2026-11-18', label: '11/18 수', city: 'rome', emoji: '🛬', theme: '로마 도착', hotel: { name: 'The Liberty Boutique Hotel' },
+        day: 1, date: '2026-11-18', label: '11/18 수', city: 'rome', emoji: '🛬', theme: '로마 도착', hotel: ROME_HOTEL,
         stops: [
           { time: '14:05', emoji: '✈️', name: '인천 출발', desc: '인천 → 로마 직항' },
           { time: '19:35', emoji: '🛬', name: '로마 피우미치노 공항 (FCO)', lat: 41.8003, lng: 12.2389, desc: '도착 후 택시로 시내 이동', memo: '택시 40~50분, 시내 고정요금 확인 후 탑승' },
@@ -26,7 +27,7 @@ window.TRIPS = {
         ]
       },
       {
-        day: 2, date: '2026-11-19', label: '11/19 목', city: 'rome', emoji: '🇻🇦', hotel: { name: 'The Liberty Boutique Hotel' }, theme: '바티칸 & 로마 중심가',
+        day: 2, date: '2026-11-19', label: '11/19 목', city: 'rome', emoji: '🇻🇦', hotel: ROME_HOTEL, theme: '바티칸 & 로마 중심가',
         stops: [
           { time: '오전', emoji: '🖼️', name: '바티칸 박물관', lat: 41.9065, lng: 12.4536, desc: '가이드 투어: 바티칸 베스트 트랙', priority: '예약완료' },
           { time: '오전', emoji: '🎨', name: '시스티나 성당', lat: 41.9029, lng: 12.4545, desc: '미켈란젤로 천장화·최후의 심판' },
@@ -89,14 +90,14 @@ window.TRIPS = {
         ]
       },
       {
-        day: 8, date: '2026-11-25', label: '11/25 수', city: 'rome', emoji: '🚄', theme: '밀라노 → 로마',
+        day: 8, date: '2026-11-25', label: '11/25 수', city: 'rome', emoji: '🚄', hotel: ROME_HOTEL, theme: '밀라노 → 로마',
         stops: [
           { time: '오전', emoji: '🚉', name: '밀라노 중앙역 (Centrale)', lat: 45.4862, lng: 9.2045, desc: '고속열차로 로마 이동', priority: '예약완료' },
-          { time: '+3시간', emoji: '🚉', name: '로마 테르미니역', lat: 41.9010, lng: 12.5016, desc: '로마 도착, 숙소 체크인' }
+          { time: '+3시간', emoji: '🚉', name: '로마 테르미니역', lat: 41.9010, lng: 12.5016, desc: '로마 도착, The Liberty Boutique Hotel 체크인 (도보 7분)' }
         ]
       },
       {
-        day: 9, date: '2026-11-26', label: '11/26 목', city: 'rome', emoji: '🏟️', theme: '고대 로마',
+        day: 9, date: '2026-11-26', label: '11/26 목', city: 'rome', emoji: '🏟️', hotel: ROME_HOTEL, theme: '고대 로마',
         stops: [
           { time: '오전', emoji: '🏟️', name: '콜로세움', lat: 41.8902, lng: 12.4922, desc: '입장권만 예매 (가이드 없음)', priority: '예약완료' },
           { time: '오후', emoji: '🏛️', name: '포로 로마노', lat: 41.8925, lng: 12.4853, desc: '고대 로마의 중심 광장' },
@@ -104,7 +105,7 @@ window.TRIPS = {
         ]
       },
       {
-        day: 10, date: '2026-11-27', label: '11/27 금', city: 'rome', emoji: '🌊', theme: '남부 1일 투어 (선택)',
+        day: 10, date: '2026-11-27', label: '11/27 금', city: 'rome', emoji: '🌊', hotel: ROME_HOTEL, theme: '남부 1일 투어 (선택)',
         stops: [
           { time: '이른 아침', emoji: '🚌', name: '로마 출발', desc: '남부 1일 투어', priority: '선택', memo: '아직 미예약 · 안 가면 블랙프라이데이 쇼핑' },
           { time: '오전', emoji: '🌋', name: '폼페이 유적', lat: 40.7489, lng: 14.4848, desc: '화산재에 묻힌 고대 도시' },
@@ -114,7 +115,7 @@ window.TRIPS = {
         ]
       },
       {
-        day: 11, date: '2026-11-28', label: '11/28 토', city: 'rome', emoji: '🛫', theme: '출국',
+        day: 11, date: '2026-11-28', label: '11/28 토', city: 'rome', emoji: '🛫', hotel: ROME_HOTEL, theme: '출국',
         stops: [
           { time: '낮', emoji: '🧳', name: '체크아웃 & 자유 일정', desc: '짐은 테르미니역 짐 보관소에 맡기기' },
           { time: '22:00', emoji: '🛫', name: '로마 피우미치노 공항 (FCO)', lat: 41.8003, lng: 12.2389, desc: '로마 → 인천, 다음날 17:25 도착' }

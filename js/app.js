@@ -169,6 +169,20 @@ function renderResult(it, { arriveAt, departAt }) {
       markersByStop.set(`${day.day}-${i}`, marker);
     });
 
+    // 그날 숙소 마커 (일정에 같은 숙소 stop이 있으면 생략)
+    const h = day.hotel;
+    if (h && h.lat != null && !day.stops.some(st => st.lat === h.lat && st.lng === h.lng)) {
+      L.marker([h.lat, h.lng], {
+        icon: L.divIcon({
+          className: 'custom-marker',
+          html: `<div class="marker-pin" style="--c:#ffd97d"><span class="emoji">🏨</span></div>`,
+          iconSize: [36, 42],
+          iconAnchor: [18, 38],
+          popupAnchor: [0, -36]
+        })
+      }).bindPopup(`<div class="popup-title">🏨 ${h.name}</div>${h.note ? `<div class="popup-meta">${h.note}</div>` : ''}`).addTo(group);
+    }
+
     if (path.length > 1) {
       L.polyline(path, { color, weight: 4, opacity: 0.6, dashArray: '8, 8', lineCap: 'round' }).addTo(group);
     }
@@ -281,8 +295,11 @@ function showDay(dayNum, it) {
   targets.forEach(d => {
     layers[d].group.addTo(map);
     it.days.find(x => String(x.day) === String(d))?.stops.forEach(s => { if (s.lat != null) bounds.push([s.lat, s.lng]); });
+    const h = it.days.find(x => String(x.day) === String(d))?.hotel;
+    if (h && h.lat != null) bounds.push([h.lat, h.lng]);
   });
-  if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] });
+  // 점이 하나뿐이면 fitBounds가 최대 확대(19)로 가버리므로 상한을 둠
+  if (bounds.length) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
 }
 
 document.getElementById('backBtn').addEventListener('click', () => {
@@ -315,6 +332,12 @@ async function openTrip(key) {
     days: trip.days.map(d => ({ ...d, weather: wxByCity[d.city]?.[d.date] || null }))
   };
   renderResult(it, {});
+
+  // 여행 중이면 오늘 날짜 탭으로 바로 이동
+  const t = new Date();
+  const today = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  const todayDay = it.days.find(d => d.date === today);
+  if (todayDay) showDay(todayDay.day, it);
 }
 
 document.querySelectorAll('[data-trip]').forEach(btn =>
